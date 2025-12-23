@@ -12,6 +12,7 @@ from agno.team import Team
 from agno.agent import Agent
 from agno.tools.firecrawl import FirecrawlTools
 from agno.tools.duckduckgo import DuckDuckGoTools
+from agno.tools.brightdata import BrightDataTools
 
 # Load environment variables from .env.local file
 env_path = Path(__file__).parent / '.env.local'
@@ -54,7 +55,7 @@ def create_company_agent():
         id="company-agent",
         name="Company Information Agent",
         model="anthropic:claude-sonnet-4-20250514",
-        tools=[FirecrawlTools(enable_crawl=True, limit=5), DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+        tools=[FirecrawlTools(enable_crawl=True, limit=5)],
         role="Find publicly available company-level information including company data, recent news and announcements and scrape company website data.",
         instructions="""
         You are responsible for gathering company-level information for leads.
@@ -62,13 +63,11 @@ def create_company_agent():
         1. Finding company data (size, industry, location, etc.)
         2. Researching recent news and announcements maximum of 3 news articles
         3. Scraping company website for additional context using the FirecrawlTools
-        4. Searching for company information using the DuckDuckGoTools for maximum of 3 results
         
         IMPORTANT SEARCH STRATEGY:
         - Always start with simple, focused search queries WITHOUT special characters
         - Replace "&" with "and", avoid commas and other special characters in queries
         - Example: Use "JPMorgan Chase" instead of "JPMorgan Chase & Co"
-        - Use max_results=3 parameter when calling DuckDuckGoTools
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Company Name" without additional words)
           * Remove special characters and use plain text only
@@ -88,7 +87,7 @@ def create_individual_agent():
         id="individual-agent",
         name="Individual Information Agent",
         model="anthropic:claude-sonnet-4-20250514",
-        tools=[DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+        tools=[BrightDataTools()],
         role="Find information about individuals including email, phone, title, and other details from public sources and LinkedIn profiles.",
         instructions="""
         You are responsible for gathering individual-level information for leads.
@@ -96,12 +95,11 @@ def create_individual_agent():
         1. Finding email addresses
         2. Finding phone numbers
         3. Identifying job titles and roles
-        4. Finding information from public sources and LinkedIn profiles using DuckDuckGoTools for maximum of 3 results
+        4. Finding information from public sources and LinkedIn profiles using BrightDataTools for maximum of 3 results
         
         IMPORTANT SEARCH STRATEGY:
         - Always start with simple, focused search queries WITHOUT special characters
         - Replace "&" with "and", avoid commas and other special characters in queries
-        - Use max_results=3 parameter when calling DuckDuckGoTools
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Person Name" without additional words)
           * Remove special characters and use plain text only
@@ -122,7 +120,7 @@ def create_activity_agent():
         id="activity-agent",
         name="Recent Activity Agent",
         model="anthropic:claude-sonnet-4-20250514",
-        tools=[DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+        tools=[BrightDataTools()],
         role="Find recent posts, articles, and mentions about individuals. Identify recent pain points or challenges mentioned publicly.",
         instructions="""
         You are responsible for gathering recent activity and insights about leads.
@@ -131,12 +129,10 @@ def create_activity_agent():
         2. Identifying public mentions
         3. Extracting pain points or challenges mentioned
         4. Analyzing sentiment and key themes
-        5. Searching for recent activity and insights using DuckDuckGoTools for maximum of 3 results
         
         IMPORTANT SEARCH STRATEGY:
         - Always start with simple, focused search queries WITHOUT special characters
         - Replace "&" with "and", avoid commas and other special characters in queries
-        - Use max_results=3 parameter when calling DuckDuckGoTools
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Person Name" without additional words)
           * Remove special characters and use plain text only
