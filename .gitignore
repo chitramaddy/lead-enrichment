@@ -44,3 +44,5 @@ Thumbs.db
 # Project specific
 *.log
 
+.specstory/
+

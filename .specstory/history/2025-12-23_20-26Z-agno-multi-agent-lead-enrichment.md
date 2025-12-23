@@ -4094,15 +4094,90 @@ _**Agent (model default, mode Agent)**_
 ---
 
 
+Reviewing the documentation and updating the code to handle DuckDuckGo errors. The "No results found" exception is stopping execution. Adding better error handling and configuration:
+
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="read_file">
-<details>
-<summary>Tool use: **read_file**</summary>
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: lead_enrichment.py</summary>
 
-Status: **loading**
+</details>
+</tool-use>
 
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -55,5 +55,5 @@
+          name="Company Information Agent",
+          model="anthropic:claude-sonnet-4-20250514",
+-         tools=[FirecrawlTools(enable_crawl=True, limit=5), DuckDuckGoTools()],
++         tools=[FirecrawlTools(enable_crawl=True, limit=5), DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+          role="Find publicly available company-level information including company data, recent news and announcements and scrape company website data.",
+          instructions="""
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -84,5 +84,5 @@
+          name="Individual Information Agent",
+          model="anthropic:claude-sonnet-4-20250514",
+-         tools=[DuckDuckGoTools()],
++         tools=[DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+          role="Find information about individuals including email, phone, title, and other details from public sources and LinkedIn profiles.",
+          instructions="""
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
+
+**Chunk 1**
+Lines added: 1, lines removed: 1
+
+```diff
+@@ -114,5 +114,5 @@
+          name="Recent Activity Agent",
+          model="anthropic:claude-sonnet-4-20250514",
+-         tools=[DuckDuckGoTools()],
++         tools=[DuckDuckGoTools(timeout=15, fixed_max_results=3)],
+          role="Find recent posts, articles, and mentions about individuals. Identify recent pain points or challenges mentioned publicly.",
+          instructions="""
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: lead_enrichment.py</summary>
 
 </details>
 </tool-use>
@@ -4114,30 +4189,38 @@ Status: **loading**
 ---
 
 
-
----
-
-
-
----
-
-
-
----
-
-
-
----
-
+Updating instructions to handle query formatting and errors:
 
 
 ---
 
 <tool-use data-tool-type="write" data-tool-name="search_replace">
 
-<details><summary>Tool use: **search_replace**</summary>
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
 
-Status: **loading**
+**Chunk 1**
+Lines added: 8, lines removed: 3
+
+```diff
+@@ -66,9 +66,14 @@
+          
+          IMPORTANT SEARCH STRATEGY:
+-         - Always start with simple, focused search queries (e.g., just "Company Name" or "Person Name")
++         - Always start with simple, focused search queries WITHOUT special characters
++         - Replace "&amp;" with "and", avoid commas and other special characters in queries
++         - Example: Use "JPMorgan Chase" instead of "JPMorgan Chase &amp; Co"
+          - Use max_results=3 parameter when calling DuckDuckGoTools
+-         - If a search returns "No results found" error, try a different, simpler query
++         - If a search returns "No results found" or "Could not run function" error:
++           * Try an even simpler query (e.g., just "Company Name" without additional words)
++           * Remove special characters and use plain text only
++           * If errors persist, skip DuckDuckGo search and rely on FirecrawlTools and general knowledge
+          - Break complex queries into simpler parts (e.g., search "Company Name" separately from "Company Name news")
+-         - If searches consistently fail, note that information was not available through search and continue with other sources
++         - If DuckDuckGo searches consistently fail, note that information was not available through search and continue with other sources
+          
+          5. Present accurately and concisely the information gathered, noting when search results were unavailable
+```
 
 </details>
 
@@ -4145,37 +4228,64 @@ Status: **loading**
 
 ---
 
+<tool-use data-tool-type="write" data-tool-name="search_replace">
 
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
+
+**Chunk 1**
+Lines added: 7, lines removed: 3
+
+```diff
+@@ -100,10 +100,14 @@
+          
+          IMPORTANT SEARCH STRATEGY:
+-         - Always start with simple, focused search queries (e.g., just "Person Name" or "Person Name LinkedIn")
++         - Always start with simple, focused search queries WITHOUT special characters
++         - Replace "&amp;" with "and", avoid commas and other special characters in queries
+          - Use max_results=3 parameter when calling DuckDuckGoTools
+-         - If a search returns "No results found" error, try a different, simpler query
++         - If a search returns "No results found" or "Could not run function" error:
++           * Try an even simpler query (e.g., just "Person Name" without additional words)
++           * Remove special characters and use plain text only
++           * If errors persist, skip DuckDuckGo search and rely on general knowledge
+          - Try variations: "Person Name", "Person Name Company", "Person Name email", "Person Name phone"
+          - Break complex queries into simpler parts
+-         - If searches consistently fail, note that information was not available through search and continue with general knowledge
++         - If DuckDuckGo searches consistently fail, note that information was not available through search and continue with general knowledge
+          
+          5. Present accurately and concisely the information gathered, noting when search results were unavailable
+```
+
+</details>
+
+</tool-use>
 
 ---
 
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: lead_enrichment.py</summary>
 
-
----
-
-
-
----
-
-
+</details>
+</tool-use>
 
 ---
 
-
-
----
-
-
+Model supplied an ambiguous edit
 
 ---
 
-<tool-use data-tool-type="unknown" data-tool-name="read_file">
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
 <details>
-<summary>Tool use: **read_file**</summary>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
 
-Status: **loading**
+- `lead_enrichment.py`
+
+Lint results
 
 
+**No lint errors found**
 </details>
 </tool-use>
 
@@ -4186,6 +4296,67 @@ Status: **loading**
 ---
 
 
+Reading the activity agent section to get the exact text:
+
+
+---
+
+<tool-use data-tool-type="read" data-tool-name="read_file">
+<details><summary>Tool use: **read_file** • Read file: lead_enrichment.py</summary>
+
+</details>
+</tool-use>
+
+---
+
+<tool-use data-tool-type="write" data-tool-name="search_replace">
+
+<details><summary>Tool use: **search_replace** • Edit file: lead_enrichment.py</summary>
+
+**Chunk 1**
+Lines added: 7, lines removed: 3
+
+```diff
+@@ -135,10 +135,14 @@
+          
+          IMPORTANT SEARCH STRATEGY:
+-         - Always start with simple, focused search queries (e.g., just "Person Name" or "Person Name posts")
++         - Always start with simple, focused search queries WITHOUT special characters
++         - Replace "&amp;" with "and", avoid commas and other special characters in queries
+          - Use max_results=3 parameter when calling DuckDuckGoTools
+-         - If a search returns "No results found" error, try a different, simpler query
++         - If a search returns "No results found" or "Could not run function" error:
++           * Try an even simpler query (e.g., just "Person Name" without additional words)
++           * Remove special characters and use plain text only
++           * If errors persist, skip DuckDuckGo search and rely on general knowledge
+          - Try variations: "Person Name", "Person Name articles", "Person Name mentions", "Person Name Company"
+          - Break complex queries into simpler parts
+-         - If searches consistently fail, note that recent public activity was not found through search
++         - If DuckDuckGo searches consistently fail, note that recent public activity was not found through search
+          - Provide general insights based on industry trends and typical pain points when specific data is unavailable
+          
+```
+
+</details>
+
+</tool-use>
+
+---
+
+<tool-use data-tool-type="generic" data-tool-name="read_lints">
+<details>
+          <summary>Tool use: **read_lints** • Read lints for 1 file</summary>
+      
+Lint paths:
+
+- `lead_enrichment.py`
+
+Lint results
+
+
+**No lint errors found**
+</details>
+</tool-use>
 
 ---
 
@@ -4194,6 +4365,238 @@ Status: **loading**
 ---
 
 
+## Changes Made:
+
+1. **Added timeout and fixed_max_results configuration:**
+   - Set `timeout=15` (increased from default 10 seconds) to give more time for responses
+   - Set `fixed_max_results=3` to limit results and reduce load
+
+2. **Updated search strategy instructions:**
+   - **Avoid special characters**: Replace "&" with "and", avoid commas and other special characters
+   - **Simpler queries**: Use "JPMorgan Chase" instead of "JPMorgan Chase & Co"
+   - **Better error handling**: If "No results found" or "Could not run function" errors occur, try even simpler queries or skip DuckDuckGo and use other sources
+
+## Why This Should Help:
+
+The error "JPMorgan Chase & Co company overview" likely fails because:
+- The "&" character can cause parsing issues
+- The query may be too complex
+- DuckDuckGo may be rate-limiting or having temporary issues
+
+## What the Agents Will Now Do:
+
+1. Use simpler queries without special characters (e.g., "JPMorgan Chase" instead of "JPMorgan Chase & Co")
+2. Have more time to respond (15 seconds timeout)
+3. Handle errors gracefully by trying simpler queries or falling back to other sources
+4. Continue the enrichment process even if DuckDuckGo fails
+
+The agents should now:
+- Format queries properly (no special characters)
+- Retry with simpler queries if errors occur
+- Continue with FirecrawlTools and general knowledge if DuckDuckGo consistently fails
+
+Run the application again; it should handle DuckDuckGo errors more gracefully.
+
+---
+
+_**User (2025-12-23 20:26Z)**_
+
+git command to create a repository and push the code
+
+---
+
+_**Agent (model default, mode Agent)**_
+
+
+
+---
+
+
+Checking if a git repository already exists, then providing commands to set it up and push:
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git status</summary>
+
+```bash
+git status
+```
+
+```
+$ git status
+On branch master
+nothing to commit, working tree clean
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+Repository is initialized. Checking for a remote, then providing commands to commit and push:
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git remote -v</summary>
+
+```bash
+git remote -v
+```
+
+```
+$ git remote -v
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+No remote is configured. Providing commands to commit and push. Checking current status:
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git log --oneline -5 2>/dev/null || echo "No commits yet"</summary>
+
+```bash
+git log --oneline -5 2>/dev/null || echo "No commits yet"
+```
+
+```
+$ git log --oneline -5 2&gt;/dev/null || echo "No commits yet"
+3c5d94e (HEAD -&gt; master) lead enrichment
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+Repository has commits. Checking for uncommitted changes, then providing commands to push:
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **run_terminal_cmd** • Run command: git status --short</summary>
+
+```bash
+git status --short
+```
+
+```
+$ git status --short
+ M .specstory/history/2025-12-23_20-26Z-agno-multi-agent-lead-enrichment.md
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+Providing commands to commit and push. Steps:
+
+
+---
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_cmd">
+<details><summary>Tool use: **run_terminal_cmd** • Run command: echo "Here are the commands to push your code to a remote repository:"</summary>
+
+```bash
+echo "Here are the commands to push your code to a remote repository:"
+```
+
+```
+$ echo "Here are the commands to push your code to a remote repository:"
+Here are the commands to push your code to a remote repository:
+```
+</details>
+</tool-use>
+
+---
+
+
+
+---
+
+
+## Step 1: Commit any uncommitted changes (optional)
+
+```bash
+# Check what files have changed
+git status
+
+# Add all files (or specific files)
+git add lead_enrichment.py requirements.txt README.md .gitignore
+
+# Commit the changes
+git commit -m "Update lead enrichment application with DuckDuckGo tools and error handling"
+```
+
+## Step 2: Create a remote repository
+
+Create a new repository on:
+- GitHub: https://github.com/new
+- GitLab: https://gitlab.com/projects/new
+- Bitbucket: https://bitbucket.org/repo/create
+
+Do not initialize it with a README, .gitignore, or license (you already have these).
+
+## Step 3: Add the remote and push
+
+After creating the repository, use these commands (replace `YOUR_USERNAME` and `YOUR_REPO_NAME`):
+
+```bash
+# Add the remote repository (replace with your actual repository URL)
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# Or if using SSH:
+# git remote add origin git@github.com:YOUR_USERNAME/YOUR_REPO_NAME.git
+
+# Push to the remote repository
+git push -u origin master
+```
+
+## Complete example
+
+If your repository URL is `https://github.com/yourusername/lead-enrichment.git`:
+
+```bash
+git remote add origin https://github.com/yourusername/lead-enrichment.git
+git push -u origin master
+```
+
+## If you need to update later
+
+```bash
+git add .
+git commit -m "Your commit message"
+git push
+```
+
+Should I run these commands for you? If so, provide your repository URL.
 
 ---
 
