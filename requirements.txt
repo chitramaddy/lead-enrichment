@@ -1,0 +1,5 @@
+agno>=0.1.0
+anthropic>=0.18.0
+firecrawl-py>=0.0.16
+ddgs>=0.1.0
+
