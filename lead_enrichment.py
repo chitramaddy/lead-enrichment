@@ -12,7 +12,6 @@ from agno.team import Team
 from agno.agent import Agent
 from agno.tools.firecrawl import FirecrawlTools
 from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.brightdata import BrightDataTools
 
 # Load environment variables from .env.local file
 env_path = Path(__file__).parent / '.env.local'
@@ -64,6 +63,10 @@ def create_company_agent():
         2. Researching recent news and announcements maximum of 3 news articles
         3. Scraping company website for additional context using the FirecrawlTools
         
+        SOURCE ATTRIBUTION: If you find information from LinkedIn company pages, always note this in your response.
+        For example: "Company Size: 500-1000 employees (source: LinkedIn)" or "Industry: Technology (source: LinkedIn)".
+        This helps the summarizer agent properly attribute the information sources.
+        
         IMPORTANT SEARCH STRATEGY:
         - Always start with simple, focused search queries WITHOUT special characters
         - Replace "&" with "and", avoid commas and other special characters in queries
@@ -71,9 +74,7 @@ def create_company_agent():
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Company Name" without additional words)
           * Remove special characters and use plain text only
-          * If errors persist, skip DuckDuckGo search and rely on FirecrawlTools and general knowledge
         - Break complex queries into simpler parts (e.g., search "Company Name" separately from "Company Name news")
-        - If DuckDuckGo searches consistently fail, note that information was not available through search and continue with other sources
         
         5. Present accurately and concisely the information gathered, noting when search results were unavailable
         Format your response clearly with sections for each type of information.
@@ -87,7 +88,7 @@ def create_individual_agent():
         id="individual-agent",
         name="Individual Information Agent",
         model="anthropic:claude-sonnet-4-20250514",
-        tools=[BrightDataTools()],
+        tools=[],
         role="Find information about individuals including email, phone, title, and other details from public sources and LinkedIn profiles.",
         instructions="""
         You are responsible for gathering individual-level information for leads.
@@ -95,7 +96,15 @@ def create_individual_agent():
         1. Finding email addresses
         2. Finding phone numbers
         3. Identifying job titles and roles
-        4. Finding information from public sources and LinkedIn profiles using BrightDataTools for maximum of 3 results
+        4. Finding information from public sources and LinkedIn profiles using BrightData MCP tools
+        
+        IMPORTANT: You have access to BrightData MCP server through the Model Context Protocol.
+        Use the available BrightData MCP tools to search for LinkedIn profiles, email addresses, phone numbers,
+        and other individual information. The MCP tools should be automatically available to you.
+        
+        SOURCE ATTRIBUTION: When you find information from LinkedIn profiles or pages, always note this in your response.
+        For example: "Email: john.doe@company.com (source: LinkedIn)" or "Title: VP of Engineering at Acme Corp (source: LinkedIn)".
+        This helps the summarizer agent properly attribute the information sources.
         
         IMPORTANT SEARCH STRATEGY:
         - Always start with simple, focused search queries WITHOUT special characters
@@ -103,10 +112,8 @@ def create_individual_agent():
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Person Name" without additional words)
           * Remove special characters and use plain text only
-          * If errors persist, skip DuckDuckGo search and rely on general knowledge
         - Try variations: "Person Name", "Person Name Company", "Person Name email", "Person Name phone"
         - Break complex queries into simpler parts
-        - If DuckDuckGo searches consistently fail, note that information was not available through search and continue with general knowledge
         
         5. Present accurately and concisely the information gathered, noting when search results were unavailable
         Format your response clearly with sections for each type of information.
@@ -120,7 +127,7 @@ def create_activity_agent():
         id="activity-agent",
         name="Recent Activity Agent",
         model="anthropic:claude-sonnet-4-20250514",
-        tools=[BrightDataTools()],
+        tools=[],
         role="Find recent posts, articles, and mentions about individuals. Identify recent pain points or challenges mentioned publicly.",
         instructions="""
         You are responsible for gathering recent activity and insights about leads.
@@ -136,10 +143,10 @@ def create_activity_agent():
         - If a search returns "No results found" or "Could not run function" error:
           * Try an even simpler query (e.g., just "Person Name" without additional words)
           * Remove special characters and use plain text only
-          * If errors persist, skip DuckDuckGo search and rely on general knowledge
         - Try variations: "Person Name", "Person Name articles", "Person Name mentions", "Person Name Company"
         - Break complex queries into simpler parts
-        - If DuckDuckGo searches consistently fail, note that recent public activity was not found through search
+        - You have access to BrightData MCP server through the Model Context Protocol. Use the available BrightData MCP tools 
+          to search for recent posts, articles, and mentions about individuals and identify recent pain points or challenges mentioned publicly.
         - Provide general insights based on industry trends and typical pain points when specific data is unavailable
         
         Format your response clearly with sections for each type of information, noting when search results were unavailable.
@@ -163,13 +170,19 @@ def create_summarizer_agent():
         4. Synthesizing all information into a clear, structured summary
         5. Highlighting key insights and actionable information
         
-        Format your summary with:
+        Make sure you format your summary with all of the following sections:
         - Executive Summary
         - Company Overview
-        - Individual Profile
+        - Individual Profile (including email, phone, title, and other details)
         - Recent Activity & Insights
         - Key Opportunities & Pain Points
         - Recommendations
+        
+        IMPORTANT: When citing information sources, always include the source attribution:
+        - If information comes from LinkedIn profiles or pages, explicitly mention "source: LinkedIn" 
+        - For example: "John Doe is the VP of Engineering at Acme Corp (source: LinkedIn)"
+        - Include source attribution for all individual profile information (email, phone, title, etc.) when it comes from LinkedIn
+        - Include source attribution for company information when it comes from LinkedIn company pages
         """
     )
 
